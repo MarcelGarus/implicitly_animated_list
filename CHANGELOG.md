@@ -1,3 +1,7 @@
-## [0.0.1] - TODO: Add release date.
+## [1.0.1] - 2019-10-14
 
-* TODO: Describe initial release.
+* Add example gif to readme.
+
+## [1.0.0] - 2019-10-14
+
+* Offer `ImplicitlyAnimatedList`.
