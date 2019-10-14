@@ -42,3 +42,7 @@ StreamBuilder<List<User>>(
   }
 ),
 ```
+
+Here's an example that generates random numbers and animates from one state to the next (notice it's only 10 fps because of being a gif):
+
+![example showcase](showcase.gif)
