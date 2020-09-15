@@ -63,14 +63,30 @@ class _ImplicitlyAnimatedListState<ItemData>
     extends State<ImplicitlyAnimatedList<ItemData>> {
   final _listKey = GlobalKey<AnimatedListState>();
   List<ItemData> _dataFromWidget;
-  List<ItemData> _dataForBuild = [];
+  List<ItemData> _dataForBuild;
 
   var sizeTween = Tween<double>(begin: 0, end: 1);
 
   @override
+  void initState() {
+    _dataForBuild = widget.itemData;
+    super.initState();
+  }
+
+  @override
   void didUpdateWidget(Widget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_dataFromWidget != widget.itemData) {
+
+    if (_dataFromWidget == null) {
+      _dataFromWidget = widget.itemData;
+      _updateData(List.from(_dataForBuild), List.from(_dataFromWidget));
+      return;
+    }
+
+    bool hasNewItems = widget.itemData.any((e) => !_dataFromWidget.contains(e));
+    bool hasRemovedItems =
+        _dataFromWidget.any((e) => !widget.itemData.contains(e));
+    if (hasNewItems || hasRemovedItems) {
       _dataFromWidget = widget.itemData;
       _updateData(List.from(_dataForBuild), List.from(_dataFromWidget));
     }
@@ -78,16 +94,11 @@ class _ImplicitlyAnimatedListState<ItemData>
 
   Future<void> _updateData(List<ItemData> from, List<ItemData> to) async {
     final operations = await diff(from, to);
-    if (!listEquals(_dataFromWidget, to) || !listEquals(_dataForBuild, from)) {
-      // While we were calculating the operations, another update got in and is
-      // currently being calculated based off the old version, so it doesn't
-      // really make sense to execute what we calculated right here. The new
-      // calculation will take care of the changes.
-      return;
-    }
     setState(() {
       for (final op in operations) {
-        op.applyTo(_dataForBuild);
+        op.applyTo(from);
+        _dataForBuild = from;
+
         if (op.isInsertion) {
           _listKey.currentState.insertItem(op.index);
         } else if (op.isDeletion) {
@@ -108,7 +119,7 @@ class _ImplicitlyAnimatedListState<ItemData>
     return AnimatedList(
       key: _listKey,
       controller: widget.controller,
-      initialItemCount: widget.itemData.length,
+      initialItemCount: _dataForBuild.length,
       padding: widget.padding,
       physics: widget.physics,
       primary: widget.primary,
