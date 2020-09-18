@@ -1,6 +1,6 @@
 name: implicitly_animated_list
 description: A Flutter widget that implicitly animates a list whenever it rebuilds with new items.
-version: 1.0.2
+version: 1.0.3
 homepage: https://github.com/marcelgarus/implicitly_animated_list
 
 environment:
