@@ -62,42 +62,34 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
 class _ImplicitlyAnimatedListState<ItemData>
     extends State<ImplicitlyAnimatedList<ItemData>> {
   final _listKey = GlobalKey<AnimatedListState>();
-  List<ItemData> _dataFromWidget;
-  List<ItemData> _dataForBuild;
+  List<ItemData> _dataForBuild = List.empty(growable: true);
 
   var sizeTween = Tween<double>(begin: 0, end: 1);
 
   @override
   void initState() {
     super.initState();
-    _dataForBuild = widget.itemData;
+
+    _updateData(widget.itemData, _dataForBuild);
   }
 
   @override
   void didUpdateWidget(Widget oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (_dataFromWidget == null) {
-      _dataFromWidget = widget.itemData;
-      _updateData(List.from(_dataFromWidget), List.from(_dataForBuild));
-      return;
-    }
-
-    bool hasNewItems = widget.itemData.any((e) => !_dataFromWidget.contains(e));
+    bool hasNewItems = widget.itemData.any((e) => !_dataForBuild.contains(e));
     bool hasRemovedItems =
-        _dataFromWidget.any((e) => !widget.itemData.contains(e));
+        _dataForBuild.any((e) => !widget.itemData.contains(e));
     if (hasNewItems || hasRemovedItems) {
-      _dataFromWidget = widget.itemData;
-      _updateData(List.from(_dataFromWidget), List.from(_dataForBuild));
+      _updateData(widget.itemData, _dataForBuild);
     }
   }
 
   Future<void> _updateData(List<ItemData> from, List<ItemData> to) async {
-    final operations = await diff(from, to);
+    final operations = await diff(to, from);
     setState(() {
       for (final op in operations) {
-        op.applyTo(from);
-        _dataForBuild = from;
+        op.applyTo(to);
 
         if (op.isInsertion) {
           _listKey.currentState.insertItem(op.index);
