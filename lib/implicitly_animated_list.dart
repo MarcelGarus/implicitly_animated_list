@@ -69,8 +69,8 @@ class _ImplicitlyAnimatedListState<ItemData>
 
   @override
   void initState() {
-    _dataForBuild = widget.itemData;
     super.initState();
+    _dataForBuild = widget.itemData;
   }
 
   @override
@@ -79,7 +79,7 @@ class _ImplicitlyAnimatedListState<ItemData>
 
     if (_dataFromWidget == null) {
       _dataFromWidget = widget.itemData;
-      _updateData(List.from(_dataForBuild), List.from(_dataFromWidget));
+      _updateData(List.from(_dataFromWidget), List.from(_dataForBuild));
       return;
     }
 
@@ -88,7 +88,7 @@ class _ImplicitlyAnimatedListState<ItemData>
         _dataFromWidget.any((e) => !widget.itemData.contains(e));
     if (hasNewItems || hasRemovedItems) {
       _dataFromWidget = widget.itemData;
-      _updateData(List.from(_dataForBuild), List.from(_dataFromWidget));
+      _updateData(List.from(_dataFromWidget), List.from(_dataForBuild));
     }
   }
 
