@@ -1,17 +1,22 @@
-## [1.0.3] - 2020-09-18
+## 2.0.0
+
+* Migrate to null-safety.
+* Change license to MIT.
+
+## 1.0.3
 
 * Fix more `RangeError`s.
 * Thanks to @mxzinke.
 
-## [1.0.2] - 2019-09-18
+## 1.0.2
 
 * Fix some `RangeError`s.
 * Thanks to @mxzinke.
 
-## [1.0.1] - 2019-10-14
+## 1.0.1
 
-* Add example gif to readme.
+* Add example gif to the readme.
 
-## [1.0.0] - 2019-10-14
+## 1.0.0
 
 * Offer `ImplicitlyAnimatedList`.
