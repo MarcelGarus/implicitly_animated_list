@@ -4,12 +4,12 @@ version: 1.0.3
 homepage: https://github.com/marcelgarus/implicitly_animated_list
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  list_diff: ^1.1.2
+  list_diff: ^2.0.0
 
 dev_dependencies:
   flutter_test:

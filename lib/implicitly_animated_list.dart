@@ -1,5 +1,3 @@
-library implicitly_animated_list;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:list_diff/list_diff.dart';
@@ -26,22 +24,10 @@ Widget _defaultAnimation(
 }
 
 class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
-  final List<ItemData> itemData;
-  final Widget Function(BuildContext context, ItemData data) itemBuilder;
-  final AnimatedChildBuilder insertAnimation;
-  final AnimatedChildBuilder deleteAnimation;
-  final Axis scrollDirection;
-  final bool reverse;
-  final ScrollController controller;
-  final bool primary;
-  final ScrollPhysics physics;
-  final bool shrinkWrap;
-  final EdgeInsetsGeometry padding;
-
   const ImplicitlyAnimatedList({
-    Key key,
-    @required this.itemData,
-    @required this.itemBuilder,
+    Key? key,
+    required this.itemData,
+    required this.itemBuilder,
     this.insertAnimation = _defaultAnimation,
     this.deleteAnimation = _defaultAnimation,
     this.scrollDirection = Axis.vertical,
@@ -51,8 +37,19 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
     this.physics,
     this.shrinkWrap = false,
     this.padding,
-  })  : assert(itemBuilder != null),
-        super(key: key);
+  }) : super(key: key);
+
+  final List<ItemData> itemData;
+  final Widget Function(BuildContext context, ItemData data) itemBuilder;
+  final AnimatedChildBuilder insertAnimation;
+  final AnimatedChildBuilder deleteAnimation;
+  final Axis scrollDirection;
+  final bool reverse;
+  final ScrollController? controller;
+  final bool? primary;
+  final ScrollPhysics? physics;
+  final bool shrinkWrap;
+  final EdgeInsetsGeometry? padding;
 
   @override
   _ImplicitlyAnimatedListState<ItemData> createState() =>
@@ -74,7 +71,7 @@ class _ImplicitlyAnimatedListState<ItemData>
   }
 
   @override
-  void didUpdateWidget(Widget oldWidget) {
+  void didUpdateWidget(ImplicitlyAnimatedList<ItemData> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     bool hasNewItems = widget.itemData.any((e) => !_dataForBuild.contains(e));
@@ -92,9 +89,9 @@ class _ImplicitlyAnimatedListState<ItemData>
         op.applyTo(to);
 
         if (op.isInsertion) {
-          _listKey.currentState.insertItem(op.index);
+          _listKey.currentState!.insertItem(op.index);
         } else if (op.isDeletion) {
-          _listKey.currentState.removeItem(op.index, (context, animation) {
+          _listKey.currentState!.removeItem(op.index, (context, animation) {
             return widget.deleteAnimation(
               context,
               widget.itemBuilder(context, op.item),
