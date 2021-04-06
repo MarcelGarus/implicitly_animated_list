@@ -68,8 +68,6 @@ class _ImplicitlyAnimatedListState<ItemData>
   final _listKey = GlobalKey<AnimatedListState>();
   List<ItemData> _dataForBuild = List.empty(growable: true);
 
-  var sizeTween = Tween<double>(begin: 0, end: 1);
-
   @override
   void initState() {
     super.initState();
