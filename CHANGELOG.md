@@ -1,3 +1,8 @@
+## 2.1.0
+
+* Add customizable `insertDuration` and `deleteDuration`.
+* Thanks to @JonasWanke.
+
 ## 2.0.0
 
 * Migrate to null-safety.
