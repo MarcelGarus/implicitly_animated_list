@@ -79,10 +79,7 @@ class _ImplicitlyAnimatedListState<ItemData>
   void didUpdateWidget(ImplicitlyAnimatedList<ItemData> oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    bool hasNewItems = widget.itemData.any((e) => !_dataForBuild.contains(e));
-    bool hasRemovedItems =
-        _dataForBuild.any((e) => !widget.itemData.contains(e));
-    if (hasNewItems || hasRemovedItems) {
+    if (!listEquals(widget.itemData, _dataForBuild)) {
       _updateData(widget.itemData, _dataForBuild);
     }
   }
