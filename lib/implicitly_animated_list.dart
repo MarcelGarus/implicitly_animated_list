@@ -36,6 +36,7 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
     this.deleteDuration = _defaultDuration,
     this.deleteAnimation = _defaultAnimation,
     this.scrollDirection = Axis.vertical,
+    this.initialAnimation = true,
     this.reverse = false,
     this.controller,
     this.primary,
@@ -50,6 +51,7 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
   final AnimatedChildBuilder insertAnimation;
   final Duration deleteDuration;
   final AnimatedChildBuilder deleteAnimation;
+  final bool initialAnimation;
   final Axis scrollDirection;
   final bool reverse;
   final ScrollController? controller;
@@ -66,13 +68,19 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
 class _ImplicitlyAnimatedListState<ItemData>
     extends State<ImplicitlyAnimatedList<ItemData>> {
   final _listKey = GlobalKey<AnimatedListState>();
-  List<ItemData> _dataForBuild = List.empty(growable: true);
+  final _dataForBuild = List<ItemData>.empty(growable: true);
 
   @override
   void initState() {
     super.initState();
 
-    _updateData(widget.itemData, _dataForBuild);
+    if (widget.initialAnimation) {
+      Future.microtask(() {
+        _updateData(widget.itemData, _dataForBuild);
+      });
+    } else {
+      _dataForBuild.addAll(widget.itemData);
+    }
   }
 
   @override
@@ -86,23 +94,25 @@ class _ImplicitlyAnimatedListState<ItemData>
 
   void _updateData(List<ItemData> to, List<ItemData> from) {
     setState(() {
+      final listState = _listKey.currentState;
       final operations = diffSync(from, to);
-      final listState = _listKey.currentState!;
       for (final op in operations) {
         op.applyTo(from);
 
-        if (op.isInsertion) {
-          listState.insertItem(op.index, duration: widget.insertDuration);
-        } else if (op.isDeletion) {
-          listState.removeItem(
-            op.index,
-            (context, animation) => widget.deleteAnimation(
-              context,
-              widget.itemBuilder(context, op.item),
-              animation,
-            ),
-            duration: widget.deleteDuration,
-          );
+        if (listState != null) {
+          if (op.isInsertion) {
+            listState.insertItem(op.index, duration: widget.insertDuration);
+          } else if (op.isDeletion) {
+            listState.removeItem(
+              op.index,
+              (context, animation) => widget.deleteAnimation(
+                context,
+                widget.itemBuilder(context, op.item),
+                animation,
+              ),
+              duration: widget.deleteDuration,
+            );
+          }
         }
       }
     });
