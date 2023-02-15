@@ -84,12 +84,12 @@ class _ImplicitlyAnimatedListState<ItemData>
     }
   }
 
-  void _updateData(List<ItemData> from, List<ItemData> to) {
+  void _updateData(List<ItemData> to, List<ItemData> from) {
     setState(() {
-      final operations = diffSync(to, from);
+      final operations = diffSync(from, to);
       final listState = _listKey.currentState!;
       for (final op in operations) {
-        op.applyTo(to);
+        op.applyTo(from);
 
         if (op.isInsertion) {
           listState.insertItem(op.index, duration: widget.insertDuration);
