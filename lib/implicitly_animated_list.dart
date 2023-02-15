@@ -84,9 +84,9 @@ class _ImplicitlyAnimatedListState<ItemData>
     }
   }
 
-  Future<void> _updateData(List<ItemData> from, List<ItemData> to) async {
-    final operations = await diff(to, from);
+  void _updateData(List<ItemData> from, List<ItemData> to) {
     setState(() {
+      final operations = diffSync(to, from);
       final listState = _listKey.currentState!;
       for (final op in operations) {
         op.applyTo(to);
