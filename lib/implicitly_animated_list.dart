@@ -104,7 +104,7 @@ class _ImplicitlyAnimatedListState<ItemData>
           ? diffSync(from, to, areEqual: equalityCustom)
           : operations;
 
-      // first apply all animations to the list but without touching the model
+      // First apply all animations to the list but without touching the model.
       if (listState != null) {
         for (final op in operationsCustom) {
           if (op.isInsertion) {
@@ -126,10 +126,11 @@ class _ImplicitlyAnimatedListState<ItemData>
         }
       }
 
-      // then update the model according to the intrinsic item-data equality to make sure:
-      // - the next diff will operate on the correct base
-      // - rendering of the remove-item animation will use the last known item-data
-      // - we always use refreshed item-datas when building
+      // Then update the model according to the intrinsic item-data equality to
+      // make sure that:
+      // - the next diff will operate on the correct base,
+      // - rendering of the remove-item animation will use the last known item-data, and
+      // - we always use refreshed item-datas when building.
       for (final op in operations) {
         op.applyTo(from);
       }
