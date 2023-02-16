@@ -31,6 +31,7 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
     Key? key,
     required this.itemData,
     required this.itemBuilder,
+    this.itemEquality,
     this.insertDuration = _defaultDuration,
     this.insertAnimation = _defaultAnimation,
     this.deleteDuration = _defaultDuration,
@@ -46,6 +47,7 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
   }) : super(key: key);
 
   final List<ItemData> itemData;
+  final bool Function(ItemData a, ItemData b)? itemEquality;
   final Widget Function(BuildContext context, ItemData data) itemBuilder;
   final Duration insertDuration;
   final AnimatedChildBuilder insertAnimation;
@@ -93,15 +95,23 @@ class _ImplicitlyAnimatedListState<ItemData>
   }
 
   void _updateData(List<ItemData> to, List<ItemData> from) {
-    setState(() {
-      final listState = _listKey.currentState;
-      final operations = diffSync(from, to);
-      for (final op in operations) {
-        op.applyTo(from);
+    final listState = _listKey.currentState;
+    final equalityCustom = widget.itemEquality;
 
-        if (listState != null) {
+    setState(() {
+      final operations = diffSync(from, to);
+      final operationsCustom = equalityCustom != null
+          ? diffSync(from, to, areEqual: equalityCustom)
+          : operations;
+
+      // first apply all animations to the list but without touching the model
+      if (listState != null) {
+        for (final op in operationsCustom) {
           if (op.isInsertion) {
-            listState.insertItem(op.index, duration: widget.insertDuration);
+            listState.insertItem(
+              op.index,
+              duration: widget.insertDuration,
+            );
           } else if (op.isDeletion) {
             listState.removeItem(
               op.index,
@@ -114,6 +124,14 @@ class _ImplicitlyAnimatedListState<ItemData>
             );
           }
         }
+      }
+
+      // then update the model according to the intrinsic item-data equality to make sure:
+      // - the next diff will operate on the correct base
+      // - rendering of the remove-item animation will use the last known item-data
+      // - we always use refreshed item-datas when building
+      for (final op in operations) {
+        op.applyTo(from);
       }
     });
   }
