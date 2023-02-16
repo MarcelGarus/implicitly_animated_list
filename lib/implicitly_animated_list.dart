@@ -31,11 +31,13 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
     Key? key,
     required this.itemData,
     required this.itemBuilder,
+    this.itemEquality,
     this.insertDuration = _defaultDuration,
     this.insertAnimation = _defaultAnimation,
     this.deleteDuration = _defaultDuration,
     this.deleteAnimation = _defaultAnimation,
     this.scrollDirection = Axis.vertical,
+    this.initialAnimation = true,
     this.reverse = false,
     this.controller,
     this.primary,
@@ -45,11 +47,13 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
   }) : super(key: key);
 
   final List<ItemData> itemData;
+  final bool Function(ItemData a, ItemData b)? itemEquality;
   final Widget Function(BuildContext context, ItemData data) itemBuilder;
   final Duration insertDuration;
   final AnimatedChildBuilder insertAnimation;
   final Duration deleteDuration;
   final AnimatedChildBuilder deleteAnimation;
+  final bool initialAnimation;
   final Axis scrollDirection;
   final bool reverse;
   final ScrollController? controller;
@@ -66,13 +70,19 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
 class _ImplicitlyAnimatedListState<ItemData>
     extends State<ImplicitlyAnimatedList<ItemData>> {
   final _listKey = GlobalKey<AnimatedListState>();
-  List<ItemData> _dataForBuild = List.empty(growable: true);
+  final _dataForBuild = List<ItemData>.empty(growable: true);
 
   @override
   void initState() {
     super.initState();
 
-    _updateData(widget.itemData, _dataForBuild);
+    if (widget.initialAnimation) {
+      Future.microtask(() {
+        _updateData(widget.itemData, _dataForBuild);
+      });
+    } else {
+      _dataForBuild.addAll(widget.itemData);
+    }
   }
 
   @override
@@ -84,26 +94,44 @@ class _ImplicitlyAnimatedListState<ItemData>
     }
   }
 
-  Future<void> _updateData(List<ItemData> from, List<ItemData> to) async {
-    final operations = await diff(to, from);
-    setState(() {
-      final listState = _listKey.currentState!;
-      for (final op in operations) {
-        op.applyTo(to);
+  void _updateData(List<ItemData> to, List<ItemData> from) {
+    final listState = _listKey.currentState;
+    final equalityCustom = widget.itemEquality;
 
-        if (op.isInsertion) {
-          listState.insertItem(op.index, duration: widget.insertDuration);
-        } else if (op.isDeletion) {
-          listState.removeItem(
-            op.index,
-            (context, animation) => widget.deleteAnimation(
-              context,
-              widget.itemBuilder(context, op.item),
-              animation,
-            ),
-            duration: widget.deleteDuration,
-          );
+    setState(() {
+      final operations = diffSync(from, to);
+      final operationsCustom = equalityCustom != null
+          ? diffSync(from, to, areEqual: equalityCustom)
+          : operations;
+
+      // first apply all animations to the list but without touching the model
+      if (listState != null) {
+        for (final op in operationsCustom) {
+          if (op.isInsertion) {
+            listState.insertItem(
+              op.index,
+              duration: widget.insertDuration,
+            );
+          } else if (op.isDeletion) {
+            listState.removeItem(
+              op.index,
+              (context, animation) => widget.deleteAnimation(
+                context,
+                widget.itemBuilder(context, op.item),
+                animation,
+              ),
+              duration: widget.deleteDuration,
+            );
+          }
         }
+      }
+
+      // then update the model according to the intrinsic item-data equality to make sure:
+      // - the next diff will operate on the correct base
+      // - rendering of the remove-item animation will use the last known item-data
+      // - we always use refreshed item-datas when building
+      for (final op in operations) {
+        op.applyTo(from);
       }
     });
   }
