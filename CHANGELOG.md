@@ -1,3 +1,10 @@
+## 2.2.0
+
+- Fixes some critical bugs.
+- Allows using a custom animation equality.
+- Allows disabling the previously forced initial animation.
+- Thanks to @stephg!
+
 ## 2.1.1
 
 - Fix animation of lists where elements were only reordered.
