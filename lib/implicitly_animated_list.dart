@@ -31,6 +31,7 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
     Key? key,
     required this.itemData,
     required this.itemBuilder,
+    this.separatorBuilder,
     this.itemEquality,
     this.insertDuration = _defaultDuration,
     this.insertAnimation = _defaultAnimation,
@@ -49,6 +50,7 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
   final List<ItemData> itemData;
   final bool Function(ItemData a, ItemData b)? itemEquality;
   final Widget Function(BuildContext context, ItemData data) itemBuilder;
+  final Widget Function(BuildContext context)? separatorBuilder;
   final Duration insertDuration;
   final AnimatedChildBuilder insertAnimation;
   final Duration deleteDuration;
@@ -150,11 +152,27 @@ class _ImplicitlyAnimatedListState<ItemData>
       scrollDirection: widget.scrollDirection,
       shrinkWrap: widget.shrinkWrap,
       itemBuilder: (context, index, animation) {
-        return widget.insertAnimation(
+        final separatorBuilder = widget.separatorBuilder;
+        final itemWidget = widget.insertAnimation(
           context,
           widget.itemBuilder(context, _dataForBuild[index]),
           animation,
         );
+        if (index > 0 && separatorBuilder != null) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              widget.insertAnimation(
+                context,
+                separatorBuilder(context),
+                animation,
+              ),
+              itemWidget,
+            ],
+          );
+        } else {
+          return itemWidget;
+        }
       },
     );
   }
