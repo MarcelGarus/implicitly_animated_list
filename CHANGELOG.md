@@ -1,3 +1,8 @@
+## 2.3.0
+
+- Add `SliverImplicitlyAnimatedList`
+- Thanks to @JonasWanke!
+
 ## 2.2.0
 
 - Fixes some critical bugs.
