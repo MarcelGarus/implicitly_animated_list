@@ -63,13 +63,11 @@ class _MyAppState extends State<MyApp> {
                 CheckedPopupMenuItem(
                   value: "toggleAnimation",
                   checked: _initialAnimation,
-                  padding: EdgeInsets.zero,
                   child: Text("Use initial animation?"),
                 ),
                 CheckedPopupMenuItem(
                   value: "toggleEquality",
                   checked: _customEquality,
-                  padding: EdgeInsets.zero,
                   child: Text("Use custom equality?"),
                 ),
                 PopupMenuItem(
