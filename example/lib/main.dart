@@ -100,13 +100,50 @@ class _MyAppState extends State<MyApp> {
             print(_items);
           }),
         ),
-        body: ImplicitlyAnimatedList<MyItem>(
-          key: _resetKey,
-          initialAnimation: _initialAnimation,
-          itemData: _items,
-          itemBuilder: (_, item) => ListTile(title: Text('$item')),
-          itemEquality: _customEquality ? _myCustomEquality : null,
+        body: Row(
+          children: [
+            _listWithTitle(
+              title: 'ImplicitlyAnimatedList',
+              child: ImplicitlyAnimatedList(
+                key: _resetKey,
+                initialAnimation: _initialAnimation,
+                insertDuration: Duration(milliseconds: 500),
+                deleteDuration: Duration(milliseconds: 500),
+                itemData: _items,
+                itemBuilder: (_, item) => ListTile(title: Text('$item')),
+                itemEquality: _customEquality ? _myCustomEquality : null,
+              ),
+            ),
+            VerticalDivider(),
+            _listWithTitle(
+              title: 'SliverImplicitlyAnimatedList',
+              child: CustomScrollView(
+                slivers: [
+                  SliverImplicitlyAnimatedList(
+                    key: _resetKey,
+                    initialAnimation: _initialAnimation,
+                    insertDuration: Duration(milliseconds: 500),
+                    deleteDuration: Duration(milliseconds: 500),
+                    itemData: _items,
+                    itemBuilder: (_, item) => ListTile(title: Text('$item')),
+                    itemEquality: _customEquality ? _myCustomEquality : null,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _listWithTitle({required String title, required Widget child}) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(title, textAlign: TextAlign.center),
+          Expanded(child: child),
+        ],
       ),
     );
   }
