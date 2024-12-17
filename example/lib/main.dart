@@ -56,39 +56,7 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(
           title: Text('Implicitly animated list'),
-          actions: [
-            PopupMenuButton<String>(
-              icon: Icon(Icons.settings),
-              itemBuilder: (_) => [
-                CheckedPopupMenuItem(
-                  value: "toggleAnimation",
-                  checked: _initialAnimation,
-                  child: Text("Use initial animation?"),
-                ),
-                CheckedPopupMenuItem(
-                  value: "toggleEquality",
-                  checked: _customEquality,
-                  child: Text("Use custom equality?"),
-                ),
-                PopupMenuItem(
-                  value: "performReset",
-                  child: Text("Reset View"),
-                ),
-              ],
-              onSelected: (value) {
-                if (value == "toggleAnimation") {
-                  setState(() => _initialAnimation = !_initialAnimation);
-                } else if (value == "toggleEquality") {
-                  setState(() => _customEquality = !_customEquality);
-                } else if (value == "performReset") {
-                  setState(() {
-                    _resetKey = ValueKey(_resetKey.value + 1);
-                    _items = updateItems([]);
-                  });
-                }
-              },
-            ),
-          ],
+          actions: [_buildSettingsButton()],
         ),
         floatingActionButton: FloatingActionButton.extended(
           label: Text('Generate numbers'),
@@ -108,7 +76,7 @@ class _MyAppState extends State<MyApp> {
                 insertDuration: Duration(milliseconds: 500),
                 deleteDuration: Duration(milliseconds: 500),
                 itemData: _items,
-                itemBuilder: (_, item) => ListTile(title: Text('$item')),
+                itemBuilder: (context, item) => ListTile(title: Text('$item')),
                 itemEquality: _customEquality ? _myCustomEquality : null,
               ),
             ),
@@ -123,7 +91,8 @@ class _MyAppState extends State<MyApp> {
                     insertDuration: Duration(milliseconds: 500),
                     deleteDuration: Duration(milliseconds: 500),
                     itemData: _items,
-                    itemBuilder: (_, item) => ListTile(title: Text('$item')),
+                    itemBuilder: (context, item) =>
+                        ListTile(title: Text('$item')),
                     itemEquality: _customEquality ? _myCustomEquality : null,
                   ),
                 ],
@@ -132,6 +101,39 @@ class _MyAppState extends State<MyApp> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSettingsButton() {
+    return PopupMenuButton(
+      icon: Icon(Icons.settings),
+      itemBuilder: (context) => [
+        CheckedPopupMenuItem(
+          value: _SettingAction.toggleAnimation,
+          checked: _initialAnimation,
+          child: Text("Use initial animation?"),
+        ),
+        CheckedPopupMenuItem(
+          value: _SettingAction.toggleEquality,
+          checked: _customEquality,
+          child: Text("Use custom equality?"),
+        ),
+        PopupMenuItem(
+          value: _SettingAction.performReset,
+          child: Text("Reset View"),
+        ),
+      ],
+      onSelected: (value) => setState(() {
+        switch (value) {
+          case _SettingAction.toggleAnimation:
+            _initialAnimation = !_initialAnimation;
+          case _SettingAction.toggleEquality:
+            _customEquality = !_customEquality;
+          case _SettingAction.performReset:
+            _resetKey = ValueKey(_resetKey.value + 1);
+            _items = updateItems([]);
+        }
+      }),
     );
   }
 
@@ -146,3 +148,5 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
+enum _SettingAction { toggleAnimation, toggleEquality, performReset }
