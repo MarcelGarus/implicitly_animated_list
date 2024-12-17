@@ -16,7 +16,10 @@ Animation<double> _driveDefaultAnimation(Animation<double> parent) {
 }
 
 Widget _defaultAnimation(
-    BuildContext context, Widget child, Animation<double> animation) {
+  BuildContext context,
+  Widget child,
+  Animation<double> animation,
+) {
   return SizeTransition(
     sizeFactor: _driveDefaultAnimation(animation),
     child: FadeTransition(
@@ -28,7 +31,7 @@ Widget _defaultAnimation(
 
 class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
   const ImplicitlyAnimatedList({
-    Key? key,
+    super.key,
     required this.itemData,
     required this.itemBuilder,
     this.itemEquality,
@@ -44,7 +47,7 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
     this.physics,
     this.shrinkWrap = false,
     this.padding,
-  }) : super(key: key);
+  });
 
   final List<ItemData> itemData;
   final bool Function(ItemData a, ItemData b)? itemEquality;

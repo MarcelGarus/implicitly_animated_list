@@ -6,20 +6,20 @@ import 'package:implicitly_animated_list/implicitly_animated_list.dart';
 void main() => runApp(MyApp());
 
 class MyItem {
+  const MyItem({required this.value, required this.version});
+
   final int value;
   final int version;
 
-  const MyItem({this.value, this.version});
-
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return other is MyItem &&
         this.value == other.value &&
         this.version == other.version;
   }
 
   @override
-  int get hashCode => value + version;
+  int get hashCode => Object.hash(value, version);
 
   @override
   String toString() => '$value (version: $version)';
