@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:list_diff/list_diff.dart';
 
 typedef AnimatedChildBuilder = Widget Function(
-    BuildContext context, Widget child, Animation<double> animation);
+  BuildContext context,
+  Widget child,
+  Animation<double> animation,
+);
 
-// The default insert/remove animation duration of [AnimatedList].
+/// The default insert/remove animation duration of [AnimatedList].
 const _defaultDuration = Duration(milliseconds: 300);
 
 Animation<double> _driveDefaultAnimation(Animation<double> parent) {
@@ -16,7 +19,10 @@ Animation<double> _driveDefaultAnimation(Animation<double> parent) {
 }
 
 Widget _defaultAnimation(
-    BuildContext context, Widget child, Animation<double> animation) {
+  BuildContext context,
+  Widget child,
+  Animation<double> animation,
+) {
   return SizeTransition(
     sizeFactor: _driveDefaultAnimation(animation),
     child: FadeTransition(
@@ -26,9 +32,10 @@ Widget _defaultAnimation(
   );
 }
 
-class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
-  const ImplicitlyAnimatedList({
-    Key? key,
+abstract class _BaseWidget<W extends _BaseWidget<W, T>, T>
+    extends StatefulWidget {
+  const _BaseWidget({
+    super.key,
     required this.itemData,
     required this.itemBuilder,
     this.itemEquality,
@@ -36,41 +43,21 @@ class ImplicitlyAnimatedList<ItemData> extends StatefulWidget {
     this.insertAnimation = _defaultAnimation,
     this.deleteDuration = _defaultDuration,
     this.deleteAnimation = _defaultAnimation,
-    this.scrollDirection = Axis.vertical,
     this.initialAnimation = true,
-    this.reverse = false,
-    this.controller,
-    this.primary,
-    this.physics,
-    this.shrinkWrap = false,
-    this.padding,
-  }) : super(key: key);
+  });
 
-  final List<ItemData> itemData;
-  final bool Function(ItemData a, ItemData b)? itemEquality;
-  final Widget Function(BuildContext context, ItemData data) itemBuilder;
+  final List<T> itemData;
+  final bool Function(T a, T b)? itemEquality;
+  final Widget Function(BuildContext context, T data) itemBuilder;
   final Duration insertDuration;
   final AnimatedChildBuilder insertAnimation;
   final Duration deleteDuration;
   final AnimatedChildBuilder deleteAnimation;
   final bool initialAnimation;
-  final Axis scrollDirection;
-  final bool reverse;
-  final ScrollController? controller;
-  final bool? primary;
-  final ScrollPhysics? physics;
-  final bool shrinkWrap;
-  final EdgeInsetsGeometry? padding;
-
-  @override
-  _ImplicitlyAnimatedListState<ItemData> createState() =>
-      _ImplicitlyAnimatedListState<ItemData>();
 }
 
-class _ImplicitlyAnimatedListState<ItemData>
-    extends State<ImplicitlyAnimatedList<ItemData>> {
-  final _listKey = GlobalKey<AnimatedListState>();
-  final _dataForBuild = List<ItemData>.empty(growable: true);
+abstract class _BaseState<W extends _BaseWidget<W, T>, T> extends State<W> {
+  final _dataForBuild = List<T>.empty(growable: true);
 
   @override
   void initState() {
@@ -86,7 +73,7 @@ class _ImplicitlyAnimatedListState<ItemData>
   }
 
   @override
-  void didUpdateWidget(ImplicitlyAnimatedList<ItemData> oldWidget) {
+  void didUpdateWidget(W oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     if (!listEquals(widget.itemData, _dataForBuild)) {
@@ -94,8 +81,7 @@ class _ImplicitlyAnimatedListState<ItemData>
     }
   }
 
-  void _updateData(List<ItemData> to, List<ItemData> from) {
-    final listState = _listKey.currentState;
+  void _updateData(List<T> to, List<T> from) {
     final equalityCustom = widget.itemEquality;
 
     setState(() {
@@ -105,24 +91,22 @@ class _ImplicitlyAnimatedListState<ItemData>
           : operations;
 
       // First apply all animations to the list but without touching the model.
-      if (listState != null) {
-        for (final op in operationsCustom) {
-          if (op.isInsertion) {
-            listState.insertItem(
-              op.index,
-              duration: widget.insertDuration,
-            );
-          } else if (op.isDeletion) {
-            listState.removeItem(
-              op.index,
-              (context, animation) => widget.deleteAnimation(
-                context,
-                widget.itemBuilder(context, op.item),
-                animation,
-              ),
-              duration: widget.deleteDuration,
-            );
-          }
+      for (final op in operationsCustom) {
+        if (op.isInsertion) {
+          _insertItem(
+            op.index,
+            duration: widget.insertDuration,
+          );
+        } else if (op.isDeletion) {
+          _removeItem(
+            op.index,
+            (context, animation) => widget.deleteAnimation(
+              context,
+              widget.itemBuilder(context, op.item),
+              animation,
+            ),
+            duration: widget.deleteDuration,
+          );
         }
       }
 
@@ -137,6 +121,61 @@ class _ImplicitlyAnimatedListState<ItemData>
     });
   }
 
+  void _insertItem(int index, {Duration duration});
+  void _removeItem(
+    int index,
+    AnimatedRemovedItemBuilder builder, {
+    Duration duration,
+  });
+}
+
+class ImplicitlyAnimatedList<ItemData>
+    extends _BaseWidget<ImplicitlyAnimatedList<ItemData>, ItemData> {
+  const ImplicitlyAnimatedList({
+    super.key,
+    required super.itemData,
+    required super.itemBuilder,
+    super.itemEquality,
+    super.insertDuration = _defaultDuration,
+    super.insertAnimation = _defaultAnimation,
+    super.deleteDuration = _defaultDuration,
+    super.deleteAnimation = _defaultAnimation,
+    super.initialAnimation = true,
+    this.scrollDirection = Axis.vertical,
+    this.reverse = false,
+    this.controller,
+    this.primary,
+    this.physics,
+    this.shrinkWrap = false,
+    this.padding,
+  });
+
+  final Axis scrollDirection;
+  final bool reverse;
+  final ScrollController? controller;
+  final bool? primary;
+  final ScrollPhysics? physics;
+  final bool shrinkWrap;
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  _ImplicitlyAnimatedListState<ItemData> createState() =>
+      _ImplicitlyAnimatedListState<ItemData>();
+}
+
+class _ImplicitlyAnimatedListState<ItemData>
+    extends _BaseState<ImplicitlyAnimatedList<ItemData>, ItemData> {
+  final _listKey = GlobalKey<AnimatedListState>();
+
+  void _insertItem(int index, {Duration duration = _defaultDuration}) =>
+      _listKey.currentState?.insertItem(index, duration: duration);
+  void _removeItem(
+    int index,
+    AnimatedRemovedItemBuilder builder, {
+    Duration duration = _defaultDuration,
+  }) =>
+      _listKey.currentState?.removeItem(index, builder, duration: duration);
+
   @override
   Widget build(BuildContext context) {
     return AnimatedList(
@@ -149,13 +188,57 @@ class _ImplicitlyAnimatedListState<ItemData>
       reverse: widget.reverse,
       scrollDirection: widget.scrollDirection,
       shrinkWrap: widget.shrinkWrap,
-      itemBuilder: (context, index, animation) {
-        return widget.insertAnimation(
-          context,
-          widget.itemBuilder(context, _dataForBuild[index]),
-          animation,
-        );
-      },
+      itemBuilder: (context, index, animation) => widget.insertAnimation(
+        context,
+        widget.itemBuilder(context, _dataForBuild[index]),
+        animation,
+      ),
+    );
+  }
+}
+
+class SliverImplicitlyAnimatedList<ItemData>
+    extends _BaseWidget<SliverImplicitlyAnimatedList<ItemData>, ItemData> {
+  const SliverImplicitlyAnimatedList({
+    super.key,
+    required super.itemData,
+    required super.itemBuilder,
+    super.itemEquality,
+    super.insertDuration = _defaultDuration,
+    super.insertAnimation = _defaultAnimation,
+    super.deleteDuration = _defaultDuration,
+    super.deleteAnimation = _defaultAnimation,
+    super.initialAnimation = true,
+  });
+
+  @override
+  _SliverImplicitlyAnimatedListState<ItemData> createState() =>
+      _SliverImplicitlyAnimatedListState<ItemData>();
+}
+
+class _SliverImplicitlyAnimatedListState<ItemData>
+    extends _BaseState<SliverImplicitlyAnimatedList<ItemData>, ItemData> {
+  final _listKey = GlobalKey<SliverAnimatedListState>();
+
+  void _insertItem(int index, {Duration duration = _defaultDuration}) =>
+      _listKey.currentState?.insertItem(index, duration: duration);
+  void _removeItem(
+    int index,
+    AnimatedRemovedItemBuilder builder, {
+    Duration duration = _defaultDuration,
+  }) =>
+      _listKey.currentState?.removeItem(index, builder, duration: duration);
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverAnimatedList(
+      key: _listKey,
+      initialItemCount: _dataForBuild.length,
+      itemBuilder: (context, index, animation) => widget.insertAnimation(
+        context,
+        widget.itemBuilder(context, _dataForBuild[index]),
+        animation,
+      ),
     );
   }
 }

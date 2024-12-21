@@ -1,3 +1,9 @@
+## 2.3.0
+
+- Add `SliverImplicitlyAnimatedList`
+- Upgrade to Dart `^3.0.0`
+- Thanks to @JonasWanke!
+
 ## 2.2.0
 
 - Fixes some critical bugs.
