@@ -122,8 +122,11 @@ abstract class _BaseState<W extends _BaseWidget<W, T>, T> extends State<W> {
   }
 
   void _insertItem(int index, {Duration duration});
-  void _removeItem(int index, AnimatedRemovedItemBuilder builder,
-      {Duration duration});
+  void _removeItem(
+    int index,
+    AnimatedRemovedItemBuilder builder, {
+    Duration duration,
+  });
 }
 
 class ImplicitlyAnimatedList<ItemData>
